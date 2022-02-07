@@ -50,7 +50,7 @@ gameLoop size snake bit = do
             then do
               let newSnake = newHead : snake
               drawAt blockChar (head newSnake)
-              newBit <- spawnBit size snake
+              newBit <- spawnBit size (newHead : snake)
               drawAt bitChar newBit
               gameLoop size newSnake newBit
             else
