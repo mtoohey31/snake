@@ -20,7 +20,7 @@ exitChars = ['q', '\ESC']
 
 inputChars = ['w', 'a', 's', 'd']
 
-tickDelay = 25000
+maxTickDelay = 100000
 
 main :: IO ()
 main = do
@@ -47,9 +47,7 @@ inputReader inputKey drawThread = do
 
 gameLoop :: (Int, Int) -> [(Int, Int)] -> (Int, Int) -> TVar Char -> IO ()
 gameLoop size snake bit inputKey = do
-  -- TODO: add test once this change has been made to make sure the recursive
-  -- implementation doesn't lead to stack overflows
-  threadDelay tickDelay
+  threadDelay (floor (maxTickDelay - (20000 * sqrt (fromIntegral (length snake)))))
   ch <- readTVarIO inputKey
   drawAt blankChar (last snake)
   let (x, y) = head snake
