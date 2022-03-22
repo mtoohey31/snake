@@ -1,14 +1,14 @@
 -- TODO: make things prettier
 -- TODO: support scaling argument
 -- cspell:ignore elem pbit
+-- TODO: handle SIGWINCH <https://hackage.haskell.org/package/unix-2.7.2.2/docs/System-Posix-Signals-Exts.html#v:sigWINCH>
 
 import Control.Concurrent (ThreadId, forkIO, killThread, threadDelay)
-import Control.Concurrent.Async (concurrently)
 import Control.Concurrent.STM (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
 import Control.Monad (when)
-import Random
-import System.IO
-import Term
+import Random (randInRange)
+import System.IO (hFlush, stdout)
+import Term (drawAt, drawLine, drawStringAt, releaseTerm, reserveTerm, termSize)
 
 blockChar = '█'
 
@@ -32,6 +32,7 @@ main = do
   reserveTerm
   drawAt bitChar initialBit
   drawLine blockChar initialSnake
+  hFlush stdout
   drawThread <- forkIO (gameLoop size initialSnake initialBit inputKey)
   inputReader inputKey drawThread
   releaseTerm
@@ -64,15 +65,18 @@ gameLoop size snake bit inputKey = do
       drawAt blockChar (head newSnake)
       newBit <- spawnBit size (newHead : snake)
       drawAt bitChar newBit
+      hFlush stdout
       gameLoop size newSnake newBit inputKey
     else
       if outOfBounds newHead size || newHead `elem` snake
         then do
           drawLine blankChar (init snake)
           drawStringAt ("Game over, score: " ++ show (length snake) ++ ". Press q to exit.") (0, 0)
+          hFlush stdout
         else do
           let newSnake = newHead : init snake
           drawAt blockChar (head newSnake)
+          hFlush stdout
           gameLoop size newSnake bit inputKey
 
 outOfBounds (x, y) (sizeX, sizeY) = not (x > 0 && y > 0 && x <= sizeX && y <= sizeY)
